@@ -103,7 +103,7 @@ pub fn main() anyerror!void {
         if (use_gpa) {
             break :gpa general_purpose_allocator.allocator();
         }
-        break :gpa std.heap.raw_c_allocator;
+        break :gpa std.heap.page_allocator;
     };
     defer if (use_gpa) {
         _ = general_purpose_allocator.deinit();
@@ -170,20 +170,19 @@ fn print_usage(arg0: []const u8) void {
 }
 
 pub fn cmd_spec_abi(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
-    _ = arena;
     var color: StdColor = .auto;
     _ = color;
 
     const spec_path = args[0];
-    const spec = try std.fs.cwd().readFileAlloc(gpa, spec_path, std.math.maxInt(usize));
+    const spec = try std.fs.cwd().readFileAlloc(arena, spec_path, std.math.maxInt(usize));
 
     // Required for json parsing.
     @setEvalBranchQuota(10000);
 
-    var scanner = std.json.Scanner.initCompleteInput(gpa, spec);
+    var scanner = std.json.Scanner.initCompleteInput(arena, spec);
     var diagnostics = std.json.Diagnostics{};
     scanner.enableDiagnostics(&diagnostics);
-    var parsed = std.json.parseFromTokenSource(t_sag.CoreRegistry, gpa, &scanner, .{}) catch |err| {
+    var parsed = std.json.parseFromTokenSource(t_sag.CoreRegistry, arena, &scanner, .{}) catch |err| {
         std.debug.print("line,col: {},{}\n", .{ diagnostics.getLine(), diagnostics.getColumn() });
         return err;
     };
