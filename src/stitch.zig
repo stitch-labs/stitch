@@ -13,8 +13,8 @@ const ThreadPool = std.Thread.Pool;
 const cleanExit = std.process.cleanExit;
 
 const tracy = @import("tracy.zig");
-const t_gsas = @import("tools/gen_solidity_abi_spec.zig");
-const t_sag = @import("tools/solidity/abi/grammar.zig");
+const gen_abi_spec = @import("tools/gen_abi_spec.zig");
+const grammar = @import("tools/abi/grammar.zig");
 
 pub const debug_extensions_enabled = builtin.mode == .Debug;
 
@@ -74,7 +74,7 @@ const normal_usage = about ++
     \\
     \\Commands:
     \\ 
-    \\  spec-abi         Generates Zig bindings for a EVM ABI specification
+    \\  spec-abi         Generates Zig bindings for an ABI specification .json
     \\
     \\General Options:
     \\
@@ -173,6 +173,16 @@ pub fn cmd_spec_abi(gpa: Allocator, arena: Allocator, args: []const []const u8) 
     var color: StdColor = .auto;
     _ = color;
 
+    if (args.len == 0) {
+        gen_abi_spec.print_usage();
+        fatal("no command entered", .{});
+    }
+
+    if (args.len != 1) {
+        gen_abi_spec.print_usage();
+        fatal("unknown command: {s}", .{args[0]});
+    }
+
     const spec_path = args[0];
     const spec = try std.fs.cwd().readFileAlloc(arena, spec_path, std.math.maxInt(usize));
 
@@ -182,13 +192,13 @@ pub fn cmd_spec_abi(gpa: Allocator, arena: Allocator, args: []const []const u8) 
     var scanner = std.json.Scanner.initCompleteInput(arena, spec);
     var diagnostics = std.json.Diagnostics{};
     scanner.enableDiagnostics(&diagnostics);
-    var parsed = std.json.parseFromTokenSource(t_sag.CoreRegistry, arena, &scanner, .{}) catch |err| {
+    var parsed = std.json.parseFromTokenSource(grammar.CoreRegistry, arena, &scanner, .{}) catch |err| {
         std.debug.print("line,col: {},{}\n", .{ diagnostics.getLine(), diagnostics.getColumn() });
         return err;
     };
 
     var bw = std.io.bufferedWriter(std.io.getStdOut().writer());
-    try t_gsas.render(bw.writer(), gpa, parsed.value);
+    try gen_abi_spec.render(bw.writer(), gpa, parsed.value);
     try bw.flush();
 }
 
