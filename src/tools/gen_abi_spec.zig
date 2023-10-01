@@ -22,24 +22,40 @@ const usage =
 ;
 
 pub fn render(writer: anytype, allocator: Allocator, registry: ag.CoreRegistry) !void {
+    _ = writer;
     _ = registry;
     _ = allocator;
 
-    try writer.writeAll(auto_generated_tag ++
+    const file = try std.fs.cwd().createFile(
+        "src/codegen/abi/bindings.zig",
+        .{ .read = true },
+    );
+    defer file.close();
+
+    const bytes_written = try file.writeAll(auto_generated_tag ++
         \\
         \\const Version = @import("std").SemanticVersion;
-        \\
         \\pub const AbiFunctionType = enum(u8) {
-        \\      function = 0x0,
+        \\    function = 0x0,
         \\};
-        \\
         \\pub const AbiComponentType = enum(u8) {
-        \\      tuple = 0x10,
-        \\      uint256 = 0x11,
+        \\    tuple = 0x10,
+        \\    uint256 = 0x11,
         \\};
-        \\
+        \\const AbiFunction = struct {
+        \\    name: []const u8,
+        \\    type: AbiFunctionType,
+        \\    inputs: []AbiComponent,
+        \\    outputs: []AbiComponent,
+        \\};
+        \\const AbiComponent = struct {
+        \\    name: []const u8,
+        \\    type: AbiComponentType,
+        \\    components: []AbiComponent,
+        \\};
         \\
     );
+    _ = bytes_written;
 
     // std.log.info("{s}", .{auto_generated_tag});
 

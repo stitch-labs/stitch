@@ -12,6 +12,8 @@ const warn = std.log.warn;
 const ThreadPool = std.Thread.Pool;
 const cleanExit = std.process.cleanExit;
 
+const global = @import("global.zig");
+const commands = @import("commands.zig");
 const tracy = @import("tracy.zig");
 const gen_abi_spec = @import("tools/gen_abi_spec.zig");
 const grammar = @import("tools/abi/grammar.zig");
@@ -75,6 +77,7 @@ const normal_usage = about ++
     \\Commands:
     \\ 
     \\  spec-abi         Generates Zig bindings for an ABI specification .json
+    \\  spec-sol         Generates Zig bindings for an Solidity specification .sol
     \\
     \\General Options:
     \\
@@ -91,11 +94,6 @@ const debug_usage = normal_usage ++
 ;
 
 const usage = if (debug_extensions_enabled) debug_usage else normal_usage;
-
-pub fn fatal(comptime format: []const u8, args: anytype) noreturn {
-    std.log.err(format, args);
-    process.exit(1);
-}
 
 pub fn main() anyerror!void {
     const use_gpa = builtin.os.tag != .wasi;
@@ -146,7 +144,7 @@ pub fn log(
 pub fn mainArgs(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
     if (args.len <= 1) {
         print_usage(args[0]);
-        fatal("expected command argument", .{});
+        global.fatal("expected command argument", .{});
     }
 
     defer log_scopes.deinit(gpa);
@@ -155,12 +153,12 @@ pub fn mainArgs(gpa: Allocator, arena: Allocator, args: []const []const u8) !voi
     const cmd_args = args[2..];
 
     if (mem.eql(u8, cmd, "build")) {
-        return cmd_build(gpa, arena, cmd_args);
+        return build(gpa, arena, cmd_args);
     } else if (mem.eql(u8, cmd, "spec-abi")) {
-        return cmd_gen_encoded_abi_spec(gpa, arena, cmd_args);
+        return commands.generate_abi_specification(gpa, arena, cmd_args);
     } else {
         print_usage(args[0]);
-        fatal("unknown command: {s}", .{args[1]});
+        global.fatal("unknown command: {s}", .{args[1]});
     }
 }
 
@@ -169,40 +167,7 @@ fn print_usage(arg0: []const u8) void {
     std.log.debug("Use {s} instead of the (stitch) command", .{arg0});
 }
 
-pub fn cmd_gen_encoded_abi_spec(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
-    var color: StdColor = .auto;
-    _ = color;
-
-    if (args.len == 0) {
-        gen_abi_spec.print_usage();
-        fatal("no command entered", .{});
-    }
-
-    if (args.len != 1) {
-        gen_abi_spec.print_usage();
-        fatal("unknown command: {s}", .{args[0]});
-    }
-
-    const spec_path = args[0];
-    const spec = try std.fs.cwd().readFileAlloc(arena, spec_path, std.math.maxInt(usize));
-
-    // Required for json parsing.
-    @setEvalBranchQuota(10000);
-
-    var scanner = std.json.Scanner.initCompleteInput(arena, spec);
-    var diagnostics = std.json.Diagnostics{};
-    scanner.enableDiagnostics(&diagnostics);
-    var parsed = std.json.parseFromTokenSource(grammar.CoreRegistry, arena, &scanner, .{}) catch |err| {
-        std.debug.print("line,col: {},{}\n", .{ diagnostics.getLine(), diagnostics.getColumn() });
-        return err;
-    };
-
-    var bw = std.io.bufferedWriter(std.io.getStdOut().writer());
-    try gen_abi_spec.render(bw.writer(), gpa, parsed.value);
-    try bw.flush();
-}
-
-pub fn cmd_build(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
+pub fn build(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
     _ = args;
     _ = arena;
     _ = gpa;
