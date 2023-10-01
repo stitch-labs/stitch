@@ -1,4 +1,4 @@
-// FROM https://github.com/ziglang/zig/blob/master/lib/std/Progress.zig
+// DIRECTLY FROM https://github.com/ziglang/zig/blob/master/lib/std/Progress.zig
 //! This API non-allocating, non-fallible, and thread-safe.
 //! The tradeoff is that users of this API must provide the storage
 //! for each `Progress.Node`.

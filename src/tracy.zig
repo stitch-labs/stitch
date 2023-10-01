@@ -1,4 +1,5 @@
-// FROM https://github.com/ziglang/zig/blob/master/src/tracy.zig
+// MODIFIED FROM https://github.com/ziglang/zig/blob/master/src/tracy.zig
+// - removed dynamic flags
 const std = @import("std");
 const builtin = @import("builtin");
 
