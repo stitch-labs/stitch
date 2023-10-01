@@ -45,8 +45,8 @@ const about =
     \\   code in resource-constrained environments like localhost.
     \\   We're working on more complete runtime compatibility and 
     \\   integration with existing frameworks like foundry and hardhat.
-    \\   Join the [Discord](https://lazy-stitch.sh/discord) and watch
-    \\   the [GitHub repository](https://github.com/lazy-labs/stitch)
+    \\   Join the [Discord](https://stitch-labs.sh/discord) and watch
+    \\   the [GitHub repository](https://github.com/stitch-labs/stitch)
     \\   to keep tabs on future releases.
     \\
     \\🧵 Stitch is an all-in-one toolkit for EVM Development.
