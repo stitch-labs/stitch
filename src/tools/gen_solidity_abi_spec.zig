@@ -34,7 +34,7 @@ pub fn main() !void {
     try bw.flush();
 }
 
-fn render(writer: anytype, allocator: Allocator, registry: sag.CoreRegistry) !void {
+pub fn render(writer: anytype, allocator: Allocator, registry: sag.CoreRegistry) !void {
     _ = allocator;
 
     try writer.writeAll(

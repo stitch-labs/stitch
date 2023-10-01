@@ -13,6 +13,8 @@ const ThreadPool = std.Thread.Pool;
 const cleanExit = std.process.cleanExit;
 
 const tracy = @import("tracy.zig");
+const t_gsas = @import("tools/gen_solidity_abi_spec.zig");
+const t_sag = @import("tools/solidity/abi/grammar.zig");
 
 pub const debug_extensions_enabled = builtin.mode == .Debug;
 
@@ -54,7 +56,7 @@ const about =
     \\
     \\   At its core is the _Stitch runtime_, a fast EVM client
     \\   designed as an EVM runtime written in Zig and powered by 
-    \\   JavaScriptCore under the hood,
+    \\   StitchScriptCore under the hood,
     \\   dramatically reducing startup times and memory usage.
     \\
     \\📦 The `stitch` command-line tool also implements a test runner,
@@ -72,7 +74,7 @@ const normal_usage = about ++
     \\
     \\Commands:
     \\ 
-    \\  spec-sol         Generates Zig bindings for a Solidity specification
+    \\  spec-abi         Generates Zig bindings for a EVM ABI specification
     \\
     \\General Options:
     \\
@@ -153,7 +155,9 @@ pub fn mainArgs(gpa: Allocator, arena: Allocator, args: []const []const u8) !voi
     const cmd_args = args[2..];
 
     if (mem.eql(u8, cmd, "build")) {
-        return cmdBuild(gpa, arena, cmd_args);
+        return cmd_build(gpa, arena, cmd_args);
+    } else if (mem.eql(u8, cmd, "spec-abi")) {
+        return cmd_spec_abi(gpa, arena, cmd_args);
     } else {
         print_usage(args[0]);
         fatal("unknown command: {s}", .{args[1]});
@@ -165,7 +169,31 @@ fn print_usage(arg0: []const u8) void {
     std.log.debug("Use {s} instead of the (stitch) command", .{arg0});
 }
 
-pub fn cmdBuild(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
+pub fn cmd_spec_abi(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
+    _ = arena;
+    var color: StdColor = .auto;
+    _ = color;
+
+    const spec_path = args[0];
+    const spec = try std.fs.cwd().readFileAlloc(gpa, spec_path, std.math.maxInt(usize));
+
+    // Required for json parsing.
+    @setEvalBranchQuota(10000);
+
+    var scanner = std.json.Scanner.initCompleteInput(gpa, spec);
+    var diagnostics = std.json.Diagnostics{};
+    scanner.enableDiagnostics(&diagnostics);
+    var parsed = std.json.parseFromTokenSource(t_sag.CoreRegistry, gpa, &scanner, .{}) catch |err| {
+        std.debug.print("line,col: {},{}\n", .{ diagnostics.getLine(), diagnostics.getColumn() });
+        return err;
+    };
+
+    var bw = std.io.bufferedWriter(std.io.getStdOut().writer());
+    try t_gsas.render(bw.writer(), gpa, parsed.value);
+    try bw.flush();
+}
+
+pub fn cmd_build(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
     _ = args;
     _ = arena;
     _ = gpa;
