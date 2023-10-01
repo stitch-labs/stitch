@@ -157,7 +157,7 @@ pub fn mainArgs(gpa: Allocator, arena: Allocator, args: []const []const u8) !voi
     if (mem.eql(u8, cmd, "build")) {
         return cmd_build(gpa, arena, cmd_args);
     } else if (mem.eql(u8, cmd, "spec-abi")) {
-        return cmd_spec_abi(gpa, arena, cmd_args);
+        return cmd_gen_encoded_abi_spec(gpa, arena, cmd_args);
     } else {
         print_usage(args[0]);
         fatal("unknown command: {s}", .{args[1]});
@@ -169,7 +169,7 @@ fn print_usage(arg0: []const u8) void {
     std.log.debug("Use {s} instead of the (stitch) command", .{arg0});
 }
 
-pub fn cmd_spec_abi(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
+pub fn cmd_gen_encoded_abi_spec(gpa: Allocator, arena: Allocator, args: []const []const u8) !void {
     var color: StdColor = .auto;
     _ = color;
 
