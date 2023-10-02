@@ -5,6 +5,36 @@
 	"revision": 0,
 	"contract_abi": [
 		{
+			"name": "a",
+			"type": 0,
+			"inputs": [],
+			"outputs": []
+		},
+		{
+			"name": "b",
+			"type": 0,
+			"inputs": [],
+			"outputs": []
+		},
+		{
+			"name": "c",
+			"type": 0,
+			"inputs": [],
+			"outputs": []
+		},
+		{
+			"name": "d",
+			"type": 0,
+			"inputs": [],
+			"outputs": []
+		},
+		{
+			"name": "e",
+			"type": 0,
+			"inputs": [],
+			"outputs": []
+		},
+		{
 			"name": "f",
 			"type": 0,
 			"inputs": [],
