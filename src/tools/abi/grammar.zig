@@ -28,17 +28,22 @@ pub const AbiFunctionType = enum(u8) {
     function = 0x0,
 };
 
-pub const AbiComponentType = enum(u8) {
-    tuple = 0x10,
-    uint256 = 0x11,
-};
+pub const AbiComponentType = enum(u8) { tuple = 0x10, uint256 = 0x11, uint256_arr = 0x12, tuple_arr = 0x13 };
 
 test "Test intFromEnum function for AbiComponentType.tuple" {
     try expect(@intFromEnum(AbiComponentType.tuple) == 16);
 }
 
+test "Test intFromEnum function for AbiComponentType.tuple_arr" {
+    try expect(@intFromEnum(AbiComponentType.tuple_arr) == 19);
+}
+
 test "Test intFromEnum function for AbiComponentType.uint256" {
     try expect(@intFromEnum(AbiComponentType.uint256) == 17);
+}
+
+test "Test intFromEnum function for AbiComponentType.uint256_arr" {
+    try expect(@intFromEnum(AbiComponentType.uint256_arr) == 18);
 }
 
 test "Test AbiInputList initialization and item types" {
