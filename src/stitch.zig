@@ -76,8 +76,8 @@ const normal_usage = about ++
     \\
     \\Commands:
     \\ 
-    \\  spec-abi         Generates Zig bindings for an ABI specification .json
-    \\  encode-abi       Generates the EVM bytecode for an ABI specification .json
+    \\  spec-abi                     Generates Zig bindings for an ABI specification .json
+    \\  bytecode-bindings-abi        Generates the EVM bytecode bindings for an ABI specification .json
     \\
     \\General Options:
     \\
@@ -89,7 +89,7 @@ const debug_usage = normal_usage ++
     \\
     \\Debug Commands:
     \\
-    \\  dump             Dump a file containing the cached EVM bytecode
+    \\  dump-bindings                Dump a file containing the cached EVM bytecode bindings
     \\
 ;
 
@@ -152,8 +152,8 @@ pub fn mainArgs(gpa: Allocator, arena: Allocator, args: []const []const u8) !voi
     const cmd = args[1];
     const cmd_args = args[2..];
 
-    if (mem.eql(u8, cmd, "encode-abi")) {
-        return commands.generate_abi_encoding(gpa, arena, cmd_args);
+    if (mem.eql(u8, cmd, "bytecode-bindings-abi")) {
+        return commands.generate_abi_bytecode_bindings(gpa, arena, cmd_args);
     } else if (mem.eql(u8, cmd, "spec-abi")) {
         return commands.generate_abi_specification(gpa, arena, cmd_args);
     } else {

@@ -2,17 +2,17 @@ const std = @import("std");
 
 const global = @import("global.zig");
 const gen_abi_spec = @import("tools/gen_abi_spec.zig");
-const gen_abi_encoding = @import("tools/gen_abi_encoding.zig");
+const gen_abi_bytecode_bindings = @import("tools/gen_abi_bytecode_bindings.zig");
 const abi_grammar = @import("tools/abi/grammar.zig");
 
-pub fn generate_abi_encoding(gpa: std.mem.Allocator, arena: std.mem.Allocator, args: []const []const u8) !void {
+pub fn generate_abi_bytecode_bindings(gpa: std.mem.Allocator, arena: std.mem.Allocator, args: []const []const u8) !void {
     if (args.len == 0) {
-        gen_abi_encoding.print_usage();
+        gen_abi_bytecode_bindings.print_usage();
         global.fatal("no command entered", .{});
     }
 
     if (args.len != 1) {
-        gen_abi_encoding.print_usage();
+        gen_abi_bytecode_bindings.print_usage();
         global.fatal("unknown command: {s}", .{args[0]});
     }
 
@@ -30,7 +30,7 @@ pub fn generate_abi_encoding(gpa: std.mem.Allocator, arena: std.mem.Allocator, a
         return err;
     };
 
-    try gen_abi_encoding.render(gpa, parsed.value);
+    try gen_abi_bytecode_bindings.render(gpa, parsed.value);
 }
 
 pub fn generate_abi_specification(gpa: std.mem.Allocator, arena: std.mem.Allocator, args: []const []const u8) !void {

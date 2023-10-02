@@ -4,9 +4,9 @@ const ag = @import("abi/grammar.zig");
 const bytes = @import("../bytes.zig");
 
 const usage =
-    \\Usage: stitch encode-abi <abi .json>
+    \\Usage: stitch bytecode-bindings-abi <abi .json>
     \\
-    \\Generates EVM bytecode for an ABI specification .json (either core or
+    \\Generates EVM bytecode bindings for an ABI specification .json (either core or
     \\extinst versions). The result, printed to stdout, should be used to update
     \\files in src/codegen/bytecode. Don't forget to format the output.
     \\
