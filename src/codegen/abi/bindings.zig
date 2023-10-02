@@ -18,3 +18,4 @@ const AbiComponent = struct {
     type: AbiComponentType,
     components: []AbiComponent,
 };
+
