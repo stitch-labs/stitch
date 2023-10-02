@@ -21,58 +21,69 @@ pub fn render(allocator: std.mem.Allocator, registry: ag.CoreRegistry) !void {
         .{ .read = true },
     );
     defer file.close();
-    try render_functions(file, allocator, registry.contract_abi);
+    try render_abi_functions(file, allocator, registry.contract_abi);
 }
 
-fn render_functions(file: std.fs.File, allocator: std.mem.Allocator, functions: []ag.AbiFunction) !void {
+fn render_abi_functions(file: std.fs.File, allocator: std.mem.Allocator, functions: []ag.AbiFunction) !void {
     for (functions) |function| {
-        if (function.type == ag.AbiFunctionType.function) {
-            try bytes.write_to_file(
-                file,
-                allocator,
-                "{s}(",
-                .{function.name},
-            );
-            if (function.inputs.len != 0) {
-                try render_inputs(file, allocator, function.inputs);
-            }
-            try bytes.write_to_file(
-                file,
-                allocator,
-                ")\n",
-                .{},
-            );
-        } else {
-            return;
-        }
-    }
-}
-
-fn render_inputs(file: std.fs.File, allocator: std.mem.Allocator, inputs: []ag.AbiComponent) !void {
-    for (inputs) |input| {
-        if (input.type == ag.AbiComponentType.tuple) {
-            try render_components(file, allocator, input.components);
-        } else {
-            return;
-        }
-    }
-}
-
-fn render_components(file: std.fs.File, allocator: std.mem.Allocator, components: []ag.AbiComponent) !void {
-    if (components.len != 0) {
-        for (components) |component| {
-            if (component.type == ag.AbiComponentType.uint256) {
+        const t = switch (function.type) {
+            ag.AbiFunctionType.function => {
                 try bytes.write_to_file(
                     file,
                     allocator,
-                    "uint256,",
+                    "{s}(",
+                    .{function.name},
+                );
+                if (function.inputs.len != 0) {
+                    try render_input_components(file, allocator, function.inputs);
+                }
+                try bytes.write_to_file(
+                    file,
+                    allocator,
+                    ")\n",
                     .{},
                 );
-            } else {
-                return;
-            }
+            },
+        };
+        _ = t;
+    }
+}
+
+fn render_input_components(file: std.fs.File, allocator: std.mem.Allocator, inputs: []ag.AbiComponent) !void {
+    for (inputs) |input| {
+        if (input.components.len != 0) {
+            const t = switch (input.type) {
+                ag.AbiComponentType.tuple => {
+                    try render_input_components_tuple(file, allocator, input.components);
+                },
+
+                else => {},
+            };
+            _ = t;
         }
     }
+}
+
+fn render_input_components_tuple(file: std.fs.File, allocator: std.mem.Allocator, components: []ag.AbiComponent) !void {
+    for (components) |component| {
+        const t = switch (component.type) {
+            ag.AbiComponentType.uint256 => {
+                try render_input_components_tuple_uint256(file, allocator);
+            },
+
+            else => {},
+        };
+        _ = t;
+    }
+}
+
+fn render_input_components_tuple_uint256(file: std.fs.File, allocator: std.mem.Allocator) !void {
+    try bytes.write_to_file(
+        file,
+        allocator,
+        "uint256,",
+        .{},
+    );
 }
 
 pub fn print_usage() void {
