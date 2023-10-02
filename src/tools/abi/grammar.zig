@@ -11,13 +11,13 @@ pub const CoreRegistry = struct {
     contract_abi: []AbiFunction,
 };
 
-const AbiComponent = struct {
+pub const AbiComponent = struct {
     name: []const u8,
     type: AbiComponentType,
     components: []AbiComponent,
 };
 
-const AbiFunction = struct {
+pub const AbiFunction = struct {
     name: []const u8,
     type: AbiFunctionType,
     inputs: []AbiComponent,
