@@ -32,9 +32,7 @@ fn write_bytes_to_file(file: std.fs.File, allocator: Allocator, comptime fmt: []
     defer allocator.free(bytes);
 }
 
-pub fn render(writer: anytype, allocator: Allocator, registry: ag.CoreRegistry) !void {
-    _ = writer;
-
+pub fn render(allocator: Allocator, registry: ag.CoreRegistry) !void {
     const file = try std.fs.cwd().createFile(
         "src/codegen/abi/bytecode.txt",
         .{ .read = true },

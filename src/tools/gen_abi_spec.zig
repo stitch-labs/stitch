@@ -45,8 +45,7 @@ const bindings = auto_generated_tag ++
     \\
 ;
 
-pub fn render(writer: anytype, allocator: Allocator, registry: ag.CoreRegistry) !void {
-    _ = writer;
+pub fn render(allocator: Allocator, registry: ag.CoreRegistry) !void {
     _ = registry;
     _ = allocator;
 

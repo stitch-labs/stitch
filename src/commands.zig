@@ -30,9 +30,7 @@ pub fn generate_abi_encoding(gpa: std.mem.Allocator, arena: std.mem.Allocator, a
         return err;
     };
 
-    var bw = std.io.bufferedWriter(std.io.getStdOut().writer());
-    try gen_abi_encoding.render(bw.writer(), gpa, parsed.value);
-    try bw.flush();
+    try gen_abi_encoding.render(gpa, parsed.value);
 }
 
 pub fn generate_abi_specification(gpa: std.mem.Allocator, arena: std.mem.Allocator, args: []const []const u8) !void {
@@ -60,7 +58,5 @@ pub fn generate_abi_specification(gpa: std.mem.Allocator, arena: std.mem.Allocat
         return err;
     };
 
-    var bw = std.io.bufferedWriter(std.io.getStdOut().writer());
-    try gen_abi_spec.render(bw.writer(), gpa, parsed.value);
-    try bw.flush();
+    try gen_abi_spec.render(gpa, parsed.value);
 }
