@@ -7,7 +7,13 @@
 		{
 			"name": "a",
 			"type": 0,
-			"inputs": [],
+			"inputs": [
+				{
+					"name": "a",
+					"type": 16,
+					"components": []
+				}
+			],
 			"outputs": []
 		},
 		{

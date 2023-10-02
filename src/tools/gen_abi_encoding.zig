@@ -21,7 +21,7 @@ const usage =
 
 pub fn render(allocator: std.mem.Allocator, registry: ag.CoreRegistry) !void {
     const file = try std.fs.cwd().createFile(
-        "src/codegen/abi/bytecode.txt",
+        "src/codegen/abi/bytecode",
         .{ .read = true },
     );
     defer file.close();
