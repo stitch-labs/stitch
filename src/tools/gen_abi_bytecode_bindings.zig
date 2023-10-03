@@ -8,7 +8,7 @@ const usage =
     \\
     \\Generates EVM bytecode bindings for an ABI specification .json (either core or
     \\extinst versions). The result, printed to stdout, should be used to update
-    \\files in src/codegen/bytecode. Don't forget to format the output.
+    \\files in src/codegen/bindings/bytecode. Don't forget to format the output.
     \\
     \\The relevant specifications can be obtained from the Stitch Registry
     \\https://github.com/registry.stitch.com/
@@ -16,8 +16,15 @@ const usage =
 ;
 
 pub fn render(allocator: std.mem.Allocator, registry: ag.CoreRegistry) !void {
+    const filepath = try std.fmt.allocPrint(
+        allocator,
+        "src/codegen/abi/bindings/bytecode/{s}",
+        .{registry.magic_number},
+    );
+    defer allocator.free(filepath);
+
     const file = try std.fs.cwd().createFile(
-        "src/codegen/abi/bytecode",
+        filepath,
         .{ .read = true },
     );
     defer file.close();
@@ -31,7 +38,7 @@ fn render_abi_bytecode_bindings(file: std.fs.File, allocator: std.mem.Allocator,
                 if (function.inputs.len != 0) {
                     try bytes.write_to_file(file, allocator, "{s}", .{function.name});
                     try render_function_inputs(file, allocator, function.inputs);
-                    try bytes.write_to_file(file, allocator, "\n", .{});
+                    try put("\n", file, allocator);
                 }
             },
         };
@@ -40,57 +47,58 @@ fn render_abi_bytecode_bindings(file: std.fs.File, allocator: std.mem.Allocator,
 
 fn render_function_inputs(file: std.fs.File, allocator: std.mem.Allocator, inputs: []ag.AbiComponent) !void {
     if (inputs.len != 0) {
-        try bytes.write_to_file(file, allocator, "(", .{});
+        try put("(", file, allocator);
         for (0.., inputs) |i, input| {
             _ = switch (input.type) {
                 ag.AbiComponentType.tuple, ag.AbiComponentType.tuple_arr, ag.AbiComponentType.uint256_arr => {
                     try render_components(file, allocator, input.components);
                     if (i != inputs.len - 1) {
-                        try render_component(file, allocator, ",");
+                        try put(",", file, allocator);
                     }
                 },
 
                 ag.AbiComponentType.uint256 => {
-                    try render_component(file, allocator, "uint256");
+                    try put("uint256", file, allocator);
                 },
             };
         }
-        try bytes.write_to_file(file, allocator, ")", .{});
+        try put(")", file, allocator);
     }
 }
 
 fn render_components(file: std.fs.File, allocator: std.mem.Allocator, components: []ag.AbiComponent) !void {
     if (components.len != 0) {
-        try bytes.write_to_file(file, allocator, "(", .{});
+        try put("(", file, allocator);
         for (0.., components) |i, component| {
             _ = switch (component.type) {
                 ag.AbiComponentType.uint256 => {
-                    try render_component(file, allocator, "uint256");
+                    try put("uint256", file, allocator);
                     if (i != components.len - 1) {
-                        try render_component(file, allocator, ",");
+                        try put(",", file, allocator);
                     }
                 },
 
                 ag.AbiComponentType.uint256_arr => {
-                    try render_component(file, allocator, "uint256[]");
+                    try put("uint256[]", file, allocator);
                     if (i != components.len - 1) {
-                        try render_component(file, allocator, ",");
+                        try put(",", file, allocator);
                     }
                 },
 
                 ag.AbiComponentType.tuple_arr => {
                     try render_components(file, allocator, component.components);
-                    try render_component(file, allocator, "[]");
+                    try put("[]", file, allocator);
                 },
 
                 else => {},
             };
         }
-        try bytes.write_to_file(file, allocator, ")", .{});
+        try put(")", file, allocator);
     }
 }
 
-fn render_component(file: std.fs.File, allocator: std.mem.Allocator, comptime data: []const u8) !void {
+/// Puts data into a file (Assumes that when used its already in the correct buffer location)
+fn put(comptime data: []const u8, file: std.fs.File, allocator: std.mem.Allocator) !void {
     try bytes.write_to_file(
         file,
         allocator,

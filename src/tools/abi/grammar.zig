@@ -3,7 +3,7 @@ const print = @import("std").debug.print;
 const expect = std.testing.expect;
 
 pub const CoreRegistry = struct {
-    magic_number: []const u8 = "ExampleContract",
+    magic_number: []const u8 = "Example",
     major_version: u32 = 0,
     minor_version: u32 = 8,
     revision: u32 = 0,
