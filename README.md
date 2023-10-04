@@ -1,11 +1,11 @@
 > Stitch 
 
-Incredibly fast EVM runtime, bundler, test runner, and package manager – all in one
+Incredibly fast EVM runtime emulator, bundler, test runner, and package manager – all in one
 
 > zig build
 > zig run src/stitch
 
-> stitch bytecode-bindings-abi example/abi.json
+> stitch bytecode-bindings-abi example/stitch_abi.json
 ```bash
 f((uint256,uint256[],(uint256,uint256)[]),(uint256,uint256),uint256)
 ```
