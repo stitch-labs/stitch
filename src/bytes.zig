@@ -10,3 +10,8 @@ pub fn write_to_file(file: std.fs.File, allocator: std.mem.Allocator, comptime f
     _ = bytes_written;
     defer allocator.free(bytes);
 }
+
+pub fn is_letter(ch: u8) bool {
+    if (('A' <= ch and ch <= 'Z') or ('a' <= ch and ch <= 'z')) return true;
+    return false;
+}

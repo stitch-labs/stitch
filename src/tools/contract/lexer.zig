@@ -6,6 +6,11 @@ const eql = std.mem.eql;
 
 const token = @import("token.zig");
 
+fn is_letter(ch: u8) bool {
+    if (('A' <= ch and ch <= 'Z') or ('a' <= ch and ch <= 'z')) return true;
+    return false;
+}
+
 pub fn Lexer() type {
     return struct {
         input: []const u8,
@@ -26,6 +31,14 @@ pub fn Lexer() type {
             }
             self.position = self.read_position;
             self.read_position += 1;
+        }
+
+        fn read_identifier(self: *Self) []const u8 {
+            var position = self.position;
+            while (is_letter(self.ch)) {
+                self.read_char();
+            }
+            return self.input[position..self.position];
         }
 
         pub fn next_token(self: *Self) token.Token {
@@ -80,10 +93,16 @@ pub fn Lexer() type {
                     };
                 },
                 else => {
-                    next = token.Token{
-                        .type = token.TokenType.EOF,
-                        .literal = token.TokenType.EOF.str(),
-                    };
+                    if (is_letter(self.ch)) {
+                        next.literal = self.read_identifier();
+                        next.type = token.KeywordType.lookup_ident(next.literal);
+                        return next;
+                    } else {
+                        next = token.Token{
+                            .type = token.TokenType.EOF,
+                            .literal = "",
+                        };
+                    }
                 },
             }
             self.read_char();
@@ -92,7 +111,7 @@ pub fn Lexer() type {
     };
 }
 
-test "Lexer @This()" {
+test "Lexer Identifiers" {
     std.debug.print("\n", .{});
     const input: []const u8 = "=+(){},;";
 
@@ -132,10 +151,61 @@ test "Lexer @This()" {
         .literal = "",
     } };
 
-    for (0.., tests) |i, t| {
-        _ = t;
-        _ = i;
+    for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("[{s}]\n", .{next.literal});
+        try expect(eql(u8, t.literal, next.literal));
+        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
+    }
+}
+
+test "Lexer Keywords" {
+    std.debug.print("\n", .{});
+    const input: []const u8 =
+        \\pragma solidity ^0.8.0;
+    ;
+
+    var lexer = Lexer(){
+        .input = input,
+        .position = 0,
+        .read_position = 1,
+        .ch = input[0],
+    };
+
+    const tests = [_]token.Token{
+        .{
+            .type = token.TokenType.PRAGMA,
+            .literal = "pragma",
+        },
+        .{
+            .type = token.TokenType.SOLIDITY,
+            .literal = "solidity",
+        },
+        .{
+            .type = token.TokenType.CARRET,
+            .literal = "^",
+        },
+        .{
+            .type = token.TokenType.INT,
+            .literal = "0",
+        },
+        .{
+            .type = token.TokenType.INT,
+            .literal = "8",
+        },
+        .{
+            .type = token.TokenType.INT,
+            .literal = "0",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+    };
+
+    for (tests) |t| {
+        var next = lexer.next_token();
+        std.debug.print("[*] {s}\n", .{next.literal});
+        try expect(eql(u8, t.literal, next.literal));
+        // try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
 }
