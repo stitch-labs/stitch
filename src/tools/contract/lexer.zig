@@ -51,7 +51,7 @@ pub fn Lexer() type {
 
         fn read_identifier(self: *Self) []const u8 {
             var position = self.position;
-            while (is_letter(self.ch)) {
+            while (is_letter(self.ch) or is_digit(self.ch)) {
                 self.read_char();
             }
             return self.input[position..self.position];
@@ -148,16 +148,14 @@ pub fn Lexer() type {
                     };
                 },
                 '/' => {
-                    self.read_char(); // Consume the '/'
+                    self.read_char();
                     if (self.ch == '/') {
-                        // It's a single-line comment
-                        self.read_char(); // Consume the second '/'
+                        self.read_char();
                         next = token.Token{
                             .type = token.TokenType.COMMENT,
                             .literal = self.read_comment(),
                         };
                     } else {
-                        // It's a division operator
                         next = token.Token{
                             .type = token.TokenType.SLASH,
                             .literal = token.TokenType.SLASH.str(),
@@ -174,6 +172,18 @@ pub fn Lexer() type {
                     next = token.Token{
                         .type = token.TokenType.GT,
                         .literal = token.TokenType.GT.str(),
+                    };
+                },
+                '[' => {
+                    next = token.Token{
+                        .type = token.TokenType.LBRACK,
+                        .literal = token.TokenType.LBRACK.str(),
+                    };
+                },
+                ']' => {
+                    next = token.Token{
+                        .type = token.TokenType.RBRACK,
+                        .literal = token.TokenType.RBRACK.str(),
                     };
                 },
                 else => {
@@ -209,6 +219,157 @@ pub fn Lexer() type {
             return next;
         }
     };
+}
+
+test "Lexer" {
+    std.debug.print("\n", .{});
+    const input: []const u8 =
+        \\// SPDX-License-Identifier: GPL-3.0
+        \\pragma solidity ^0.8.0;
+        \\pragma experimental ABIEncoderV2;
+        \\struct S { uint a; uint[] b; T[] c; }
+    ;
+
+    var lexer = Lexer(){
+        .input = input,
+        .position = 0,
+        .read_position = 1,
+        .ch = input[0],
+    };
+
+    const tests = [_]token.Token{
+        .{
+            .type = token.TokenType.COMMENT,
+            .literal = " SPDX-License-Identifier: GPL-3.0",
+        },
+        .{
+            .type = token.TokenType.PRAGMA,
+            .literal = "pragma",
+        },
+        .{
+            .type = token.TokenType.SOLIDITY,
+            .literal = "solidity",
+        },
+        .{
+            .type = token.TokenType.CARRET,
+            .literal = "^",
+        },
+        .{
+            .type = token.TokenType.INT,
+            .literal = "0",
+        },
+        .{
+            .type = token.TokenType.PERIOD,
+            .literal = ".",
+        },
+        .{
+            .type = token.TokenType.INT,
+            .literal = "8",
+        },
+        .{
+            .type = token.TokenType.PERIOD,
+            .literal = ".",
+        },
+        .{
+            .type = token.TokenType.INT,
+            .literal = "0",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+        .{
+            .type = token.TokenType.PRAGMA,
+            .literal = "pragma",
+        },
+        .{
+            .type = token.TokenType.EXPERIMENTAL,
+            .literal = "experimental",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "ABIEncoderV2",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+        .{
+            .type = token.TokenType.STRUCT,
+            .literal = "struct",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "S",
+        },
+        .{
+            .type = token.TokenType.LBRACE,
+            .literal = "{",
+        },
+        .{
+            .type = token.TokenType.UINT,
+            .literal = "uint",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "a",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+        .{
+            .type = token.TokenType.UINT,
+            .literal = "uint",
+        },
+        .{
+            .type = token.TokenType.LBRACK,
+            .literal = "[",
+        },
+        .{
+            .type = token.TokenType.RBRACK,
+            .literal = "]",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "b",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "T",
+        },
+        .{
+            .type = token.TokenType.LBRACK,
+            .literal = "[",
+        },
+        .{
+            .type = token.TokenType.RBRACK,
+            .literal = "]",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "c",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+        .{
+            .type = token.TokenType.RBRACE,
+            .literal = "}",
+        },
+    };
+
+    for (tests) |t| {
+        var next = lexer.next_token();
+        std.debug.print("[*] \n| (V): [{s}, {s}]\n| (T): [{}, {}]\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        try expect(eql(u8, t.literal, next.literal));
+        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
+    }
 }
 
 test "Lexer - =+(){},;" {
@@ -312,10 +473,7 @@ test "Lexer - pragma solidity ^0.8.0;" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        // std.debug.print("[*] \n| Expect: [{s}] \n| Actual: [{s}]\n", .{
-        //     t.literal,
-        //     next.literal,
-        // });
+        std.debug.print("[*] \n| (V): [{s}, {s}]\n| (T): [{}, {}]\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
@@ -343,10 +501,135 @@ test "Lexer - // SPDX-License-Identifier: GPL-3.0" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        // std.debug.print("[*] \n| Expect: [{s}] \n| Actual: [{s}]\n", .{
-        //     t.literal,
-        //     next.literal,
-        // });
+        std.debug.print("[*] \n| (V): [{s}, {s}]\n| (T): [{}, {}]\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        try expect(eql(u8, t.literal, next.literal));
+        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
+    }
+}
+
+test "Lexer - contract Example {" {
+    std.debug.print("\n", .{});
+    const input: []const u8 =
+        \\contract Example {
+    ;
+
+    var lexer = Lexer(){
+        .input = input,
+        .position = 0,
+        .read_position = 1,
+        .ch = input[0],
+    };
+
+    const tests = [_]token.Token{
+        .{
+            .type = token.TokenType.CONTRACT,
+            .literal = "contract",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "Example",
+        },
+        .{
+            .type = token.TokenType.LBRACE,
+            .literal = "{",
+        },
+    };
+
+    for (tests) |t| {
+        var next = lexer.next_token();
+        std.debug.print("[*] \n| (V): [{s}, {s}]\n| (T): [{}, {}]\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        try expect(eql(u8, t.literal, next.literal));
+        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
+    }
+}
+
+test "Lexer - struct S { uint a; uint[] b; T[] c; }" {
+    std.debug.print("\n", .{});
+    const input: []const u8 =
+        \\struct S { uint a; uint[] b; T[] c; }
+    ;
+
+    var lexer = Lexer(){
+        .input = input,
+        .position = 0,
+        .read_position = 1,
+        .ch = input[0],
+    };
+
+    const tests = [_]token.Token{
+        .{
+            .type = token.TokenType.STRUCT,
+            .literal = "struct",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "S",
+        },
+        .{
+            .type = token.TokenType.LBRACE,
+            .literal = "{",
+        },
+        .{
+            .type = token.TokenType.UINT,
+            .literal = "uint",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "a",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+        .{
+            .type = token.TokenType.UINT,
+            .literal = "uint",
+        },
+        .{
+            .type = token.TokenType.LBRACK,
+            .literal = "[",
+        },
+        .{
+            .type = token.TokenType.RBRACK,
+            .literal = "]",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "b",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "T",
+        },
+        .{
+            .type = token.TokenType.LBRACK,
+            .literal = "[",
+        },
+        .{
+            .type = token.TokenType.RBRACK,
+            .literal = "]",
+        },
+        .{
+            .type = token.TokenType.IDENT,
+            .literal = "c",
+        },
+        .{
+            .type = token.TokenType.SEMICOLON,
+            .literal = ";",
+        },
+        .{
+            .type = token.TokenType.RBRACE,
+            .literal = "}",
+        },
+    };
+
+    for (tests) |t| {
+        var next = lexer.next_token();
+        std.debug.print("[*] \n| (V): [{s}, {s}]\n| (T): [{}, {}]\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
