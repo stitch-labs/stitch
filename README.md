@@ -12,7 +12,7 @@ The production version of **Stitch is not under active development**.
 On macOS/Linux:
 
 ```console
-git clone https://github.com/stitch-labs/stitch; cd stitch; zig build; zig run src/stitch;
+git clone https://github.com/stitch-labs/stitch; cd stitch; zig build; zig run src/stitch.zig;
 ```
 
 ​​The `stitch` command-line tool also implements a EVM runtime emulator, bundler, test runner, and github based package manager. Instead of manually linking for development, you only need `stitch`. Stitch's built-in tools are significantly faster than existing options and usable in existing ethereum projects with little to no changes.
