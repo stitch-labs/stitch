@@ -366,7 +366,7 @@ test "Lexer" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {})), ", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
@@ -414,7 +414,7 @@ test "Lexer - =+(){},;" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {})), ", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
@@ -474,7 +474,7 @@ test "Lexer - pragma solidity ^0.8.0;" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {})), ", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
@@ -502,7 +502,7 @@ test "Lexer - // SPDX-License-Identifier: GPL-3.0" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {})), ", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
@@ -538,7 +538,7 @@ test "Lexer - contract Example {" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {})), ", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
@@ -630,7 +630,7 @@ test "Lexer - struct S { uint a; uint[] b; T[] c; }" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {})), ", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
