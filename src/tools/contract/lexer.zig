@@ -11,14 +11,30 @@ fn is_letter(ch: u8) bool {
     return false;
 }
 
+fn is_whitespace(ch: u8) bool {
+    if (ch == ' ') return true else if (ch == '\t') return true else if (ch == '\n') return true else if (ch == '\r') return true else return false;
+}
+
+fn is_carret(ch: u8) bool {
+    if (ch == '^') return true;
+    return false;
+}
+
+fn is_period(ch: u8) bool {
+    if (ch == '.') return true;
+    return false;
+}
+
+fn is_digit(ch: u8) bool {
+    if ('0' <= ch and ch <= '9') return true;
+    return false;
+}
+
 pub fn Lexer() type {
     return struct {
         input: []const u8,
-        // current position in input (points to current char)
         position: u8,
-        // current reading position in input (after current char)
         read_position: u8,
-        // current char under examination
         ch: u8,
 
         const Self = @This();
@@ -41,8 +57,21 @@ pub fn Lexer() type {
             return self.input[position..self.position];
         }
 
+        fn read_number(self: *Self) []const u8 {
+            var position = self.position;
+            while (is_digit(self.ch)) self.read_char();
+            return self.input[position..self.position];
+        }
+
+        fn skip_whitespace(self: *Self) void {
+            while (is_whitespace(self.ch)) {
+                self.read_char();
+            }
+        }
+
         pub fn next_token(self: *Self) token.Token {
             var next: token.Token = undefined;
+            self.skip_whitespace();
             switch (self.ch) {
                 '=' => {
                     next = token.Token{
@@ -95,13 +124,29 @@ pub fn Lexer() type {
                 else => {
                     if (is_letter(self.ch)) {
                         next.literal = self.read_identifier();
-                        next.type = token.KeywordType.lookup_ident(next.literal);
+                        next.type = token.lookup_ident(next.literal);
+                        return next;
+                    } else if (is_digit(self.ch)) {
+                        next.literal = self.read_number();
+                        next.type = token.TokenType.INT;
                         return next;
                     } else {
-                        next = token.Token{
-                            .type = token.TokenType.EOF,
-                            .literal = "",
-                        };
+                        if (is_carret(self.ch)) {
+                            next = token.Token{
+                                .type = token.TokenType.CARRET,
+                                .literal = "^",
+                            };
+                        } else if (is_period(self.ch)) {
+                            next = token.Token{
+                                .type = token.TokenType.PERIOD,
+                                .literal = ".",
+                            };
+                        } else {
+                            next = token.Token{
+                                .type = token.TokenType.EOF,
+                                .literal = "",
+                            };
+                        }
                     }
                 },
             }
@@ -189,8 +234,16 @@ test "Lexer Keywords" {
             .literal = "0",
         },
         .{
+            .type = token.TokenType.PERIOD,
+            .literal = ".",
+        },
+        .{
             .type = token.TokenType.INT,
             .literal = "8",
+        },
+        .{
+            .type = token.TokenType.PERIOD,
+            .literal = ".",
         },
         .{
             .type = token.TokenType.INT,
@@ -204,8 +257,11 @@ test "Lexer Keywords" {
 
     for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("[*] {s}\n", .{next.literal});
+        // std.debug.print("[*] \n| Expect: [{s}] \n| Actual: [{s}]\n", .{
+        //     t.literal,
+        //     next.literal,
+        // });
         try expect(eql(u8, t.literal, next.literal));
-        // try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
+        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }
 }
