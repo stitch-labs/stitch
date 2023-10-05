@@ -63,6 +63,14 @@ pub fn Lexer() type {
             return self.input[position..self.position];
         }
 
+        fn read_comment(self: *Self) []const u8 {
+            var position = self.position;
+            while (self.ch != '\n' and self.ch != 0) {
+                self.read_char();
+            }
+            return self.input[position..self.position];
+        }
+
         fn skip_whitespace(self: *Self) void {
             while (is_whitespace(self.ch)) {
                 self.read_char();
@@ -121,10 +129,57 @@ pub fn Lexer() type {
                         .literal = token.TokenType.RBRACE.str(),
                     };
                 },
+                '-' => {
+                    next = token.Token{
+                        .type = token.TokenType.MINUS,
+                        .literal = token.TokenType.MINUS.str(),
+                    };
+                },
+                '!' => {
+                    next = token.Token{
+                        .type = token.TokenType.BANG,
+                        .literal = token.TokenType.BANG.str(),
+                    };
+                },
+                '*' => {
+                    next = token.Token{
+                        .type = token.TokenType.ASTERISK,
+                        .literal = token.TokenType.ASTERISK.str(),
+                    };
+                },
+                '/' => {
+                    self.read_char(); // Consume the '/'
+                    if (self.ch == '/') {
+                        // It's a single-line comment
+                        self.read_char(); // Consume the second '/'
+                        next = token.Token{
+                            .type = token.TokenType.COMMENT,
+                            .literal = self.read_comment(),
+                        };
+                    } else {
+                        // It's a division operator
+                        next = token.Token{
+                            .type = token.TokenType.SLASH,
+                            .literal = token.TokenType.SLASH.str(),
+                        };
+                    }
+                },
+                '<' => {
+                    next = token.Token{
+                        .type = token.TokenType.LT,
+                        .literal = token.TokenType.LT.str(),
+                    };
+                },
+                '>' => {
+                    next = token.Token{
+                        .type = token.TokenType.GT,
+                        .literal = token.TokenType.GT.str(),
+                    };
+                },
                 else => {
                     if (is_letter(self.ch)) {
                         next.literal = self.read_identifier();
-                        next.type = token.lookup_ident(next.literal);
+                        next.type = token.TokenType.lookup_ident(next.literal);
                         return next;
                     } else if (is_digit(self.ch)) {
                         next.literal = self.read_number();
@@ -156,7 +211,7 @@ pub fn Lexer() type {
     };
 }
 
-test "Lexer Identifiers" {
+test "Lexer - =+(){},;" {
     std.debug.print("\n", .{});
     const input: []const u8 = "=+(){},;";
 
@@ -203,7 +258,7 @@ test "Lexer Identifiers" {
     }
 }
 
-test "Lexer Keywords" {
+test "Lexer - pragma solidity ^0.8.0;" {
     std.debug.print("\n", .{});
     const input: []const u8 =
         \\pragma solidity ^0.8.0;
@@ -252,6 +307,37 @@ test "Lexer Keywords" {
         .{
             .type = token.TokenType.SEMICOLON,
             .literal = ";",
+        },
+    };
+
+    for (tests) |t| {
+        var next = lexer.next_token();
+        // std.debug.print("[*] \n| Expect: [{s}] \n| Actual: [{s}]\n", .{
+        //     t.literal,
+        //     next.literal,
+        // });
+        try expect(eql(u8, t.literal, next.literal));
+        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
+    }
+}
+
+test "Lexer - // SPDX-License-Identifier: GPL-3.0" {
+    std.debug.print("\n", .{});
+    const input: []const u8 =
+        \\// SPDX-License-Identifier: GPL-3.0
+    ;
+
+    var lexer = Lexer(){
+        .input = input,
+        .position = 0,
+        .read_position = 1,
+        .ch = input[0],
+    };
+
+    const tests = [_]token.Token{
+        .{
+            .type = token.TokenType.COMMENT,
+            .literal = " SPDX-License-Identifier: GPL-3.0",
         },
     };
 

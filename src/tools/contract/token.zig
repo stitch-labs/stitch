@@ -11,10 +11,17 @@ pub const TokenType = enum {
     // Identifiers + literals
     IDENT,
     INT,
+    COMMENT,
 
     // Operators
     ASSIGN,
     PLUS,
+    MINUS,
+    BANG,
+    ASTERISK,
+    SLASH,
+    LT,
+    GT,
 
     // Delimiters
     COMMA,
@@ -33,42 +40,27 @@ pub const TokenType = enum {
     SOLIDITY,
 
     // Define a lookup table for token type names
-    pub const TokenTypeTable = [@typeInfo(TokenType).Enum.fields.len][:0]const u8{ "ILLEGAL", "EOF", "IDENT", "INT", "=", "+", ",", ";", "(", ")", "{", "}", "^", ".", "pragma", "FUNCTION", "STRUCT", "solidity" };
+    pub const TokenTypeTable = [@typeInfo(TokenType).Enum.fields.len][:0]const u8{ "ILLEGAL", "EOF", "IDENT", "INT", "COMMENT", "=", "+", "-", "!", "*", "/", "<", ">", ",", ";", "(", ")", "{", "}", "^", ".", "pragma", "FUNCTION", "STRUCT", "solidity" };
 
     // Define a function to convert token type to its string representation
     pub fn str(self: TokenType) [:0]const u8 {
         return TokenTypeTable[@intFromEnum(self)];
     }
-};
 
-pub const KeywordType = enum {
-    PRAGMA,
-    FUNCTION,
-    STRUCT,
-    SOLIDITY,
-    CARRET,
-    PERIOD,
-
-    pub const KeywordTypeTable = [@typeInfo(KeywordType).Enum.fields.len][:0]const u8{ "pragma", "function", "struct", "solidity", "^", "." };
-
-    pub fn str(self: KeywordType) [:0]const u8 {
-        return KeywordTypeTable[@intFromEnum(self)];
+    pub fn lookup_ident(ident: []const u8) TokenType {
+        if (std.mem.eql(u8, ident, TokenType.PRAGMA.str())) {
+            return TokenType.PRAGMA;
+        } else if (std.mem.eql(u8, ident, TokenType.SOLIDITY.str())) {
+            return TokenType.SOLIDITY;
+        } else if (std.mem.eql(u8, ident, TokenType.CARRET.str())) {
+            return TokenType.CARRET;
+        } else if (std.mem.eql(u8, ident, TokenType.PERIOD.str())) {
+            return TokenType.PERIOD;
+        } else {
+            return TokenType.IDENT;
+        }
     }
 };
-
-pub fn lookup_ident(ident: []const u8) TokenType {
-    if (std.mem.eql(u8, ident, KeywordType.PRAGMA.str())) {
-        return TokenType.PRAGMA;
-    } else if (std.mem.eql(u8, ident, KeywordType.SOLIDITY.str())) {
-        return TokenType.SOLIDITY;
-    } else if (std.mem.eql(u8, ident, KeywordType.CARRET.str())) {
-        return TokenType.CARRET;
-    } else if (std.mem.eql(u8, ident, KeywordType.PERIOD.str())) {
-        return TokenType.PERIOD;
-    } else {
-        return TokenType.IDENT;
-    }
-}
 
 pub const Token = struct {
     type: TokenType,
