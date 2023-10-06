@@ -1,6 +1,4 @@
 const std = @import("std");
-const print = @import("std").debug.print;
-const mem = std.mem;
 const expect = std.testing.expect;
 const eql = std.mem.eql;
 

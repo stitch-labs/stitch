@@ -1,24 +1,25 @@
 const std = @import("std");
 
-const ag = @import("abi/grammar.zig");
-const bytes = @import("../bytes.zig");
+const ag = @import("../interpreter/abi/grammar.zig");
+
+const util = @import("../util.zig");
 
 const usage =
-    \\Usage: stitch bytecode-bindings-abi <abi .json>
+    \\Usage: stitch abi-bytecode <abi .json>
     \\
-    \\Generates EVM bytecode bindings for an ABI specification .json (either core or
+    \\Generates EVM bytecode for an ABI specification .json (either core or
     \\extinst versions). The result, printed to stdout, should be used to update
-    \\files in src/codegen/bindings/bytecode. Don't forget to format the output.
+    \\files in src/autogen/bytecode. Don't forget to format the output.
     \\
     \\The relevant specifications can be obtained from the Stitch Registry
-    \\https://github.com/registry.stitch.com/
+    \\https://github.com/stitch-labs/specifications
     \\
 ;
 
 pub fn render(allocator: std.mem.Allocator, registry: ag.CoreRegistry) !void {
     const filepath = try std.fmt.allocPrint(
         allocator,
-        "src/codegen/abi/bindings/bytecode/{s}",
+        "src/autogen/bytecode/{s}",
         .{registry.magic_number},
     );
     defer allocator.free(filepath);
@@ -36,7 +37,7 @@ fn render_abi_bytecode_bindings(file: std.fs.File, allocator: std.mem.Allocator,
         _ = switch (function.type) {
             ag.AbiFunctionType.function => {
                 if (function.inputs.len != 0) {
-                    try bytes.write_to_file(file, allocator, "{s}", .{function.name});
+                    try util.write_to_file(file, allocator, "{s}", .{function.name});
                     try render_function_inputs(file, allocator, function.inputs);
                     try put("\n", file, allocator);
                 }
@@ -99,7 +100,7 @@ fn render_components(file: std.fs.File, allocator: std.mem.Allocator, components
 
 /// Puts data into a file (Assumes that when used its already in the correct buffer location)
 fn put(comptime data: []const u8, file: std.fs.File, allocator: std.mem.Allocator) !void {
-    try bytes.write_to_file(
+    try util.write_to_file(
         file,
         allocator,
         data,

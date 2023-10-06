@@ -14,9 +14,6 @@ const cleanExit = std.process.cleanExit;
 
 const global = @import("global.zig");
 const commands = @import("commands.zig");
-const tracy = @import("tracy.zig");
-const gen_abi_spec = @import("tools/gen_abi_spec.zig");
-const grammar = @import("tools/abi/grammar.zig");
 
 pub const debug_extensions_enabled = builtin.mode == .Debug;
 
@@ -76,8 +73,8 @@ const normal_usage = about ++
     \\
     \\Commands:
     \\ 
-    \\  spec-abi                     Generates Zig bindings for an ABI specification .json
-    \\  bytecode-bindings-abi        Generates the EVM bytecode bindings for an ABI specification .json
+    \\  abi-spec                     Generates Zig bindings for an ABI specification .json
+    \\  abi-bytecode                 Generates the EVM bytecode for an ABI specification .json
     \\
     \\General Options:
     \\
@@ -152,9 +149,9 @@ pub fn mainArgs(gpa: Allocator, arena: Allocator, args: []const []const u8) !voi
     const cmd = args[1];
     const cmd_args = args[2..];
 
-    if (mem.eql(u8, cmd, "bytecode-bindings-abi")) {
-        return commands.generate_abi_bytecode_bindings(gpa, arena, cmd_args);
-    } else if (mem.eql(u8, cmd, "spec-abi")) {
+    if (mem.eql(u8, cmd, "abi-bytecode")) {
+        return commands.generate_abi_bytecode(gpa, arena, cmd_args);
+    } else if (mem.eql(u8, cmd, "abi-spec")) {
         return commands.generate_abi_specification(gpa, arena, cmd_args);
     } else {
         print_usage(args[0]);

@@ -2,17 +2,17 @@ const std = @import("std");
 
 const global = @import("global.zig");
 const gen_abi_spec = @import("tools/gen_abi_spec.zig");
-const gen_abi_bytecode_bindings = @import("tools/gen_abi_bytecode_bindings.zig");
-const abi_grammar = @import("tools/abi/grammar.zig");
+const gen_abi_bytecode = @import("tools/gen_abi_bytecode.zig");
+const ag = @import("interpreter/abi/grammar.zig");
 
-pub fn generate_abi_bytecode_bindings(gpa: std.mem.Allocator, arena: std.mem.Allocator, args: []const []const u8) !void {
+pub fn generate_abi_bytecode(gpa: std.mem.Allocator, arena: std.mem.Allocator, args: []const []const u8) !void {
     if (args.len == 0) {
-        gen_abi_bytecode_bindings.print_usage();
+        gen_abi_bytecode.print_usage();
         global.fatal("no command entered", .{});
     }
 
     if (args.len != 1) {
-        gen_abi_bytecode_bindings.print_usage();
+        gen_abi_bytecode.print_usage();
         global.fatal("unknown command: {s}", .{args[0]});
     }
 
@@ -25,12 +25,12 @@ pub fn generate_abi_bytecode_bindings(gpa: std.mem.Allocator, arena: std.mem.All
     var scanner = std.json.Scanner.initCompleteInput(arena, spec);
     var diagnostics = std.json.Diagnostics{};
     scanner.enableDiagnostics(&diagnostics);
-    var parsed = std.json.parseFromTokenSource(abi_grammar.CoreRegistry, arena, &scanner, .{}) catch |err| {
+    var parsed = std.json.parseFromTokenSource(ag.CoreRegistry, arena, &scanner, .{}) catch |err| {
         std.debug.print("line,col: {},{}\n", .{ diagnostics.getLine(), diagnostics.getColumn() });
         return err;
     };
 
-    try gen_abi_bytecode_bindings.render(gpa, parsed.value);
+    try gen_abi_bytecode.render(gpa, parsed.value);
 }
 
 pub fn generate_abi_specification(gpa: std.mem.Allocator, arena: std.mem.Allocator, args: []const []const u8) !void {
@@ -53,7 +53,7 @@ pub fn generate_abi_specification(gpa: std.mem.Allocator, arena: std.mem.Allocat
     var scanner = std.json.Scanner.initCompleteInput(arena, spec);
     var diagnostics = std.json.Diagnostics{};
     scanner.enableDiagnostics(&diagnostics);
-    var parsed = std.json.parseFromTokenSource(abi_grammar.CoreRegistry, arena, &scanner, .{}) catch |err| {
+    var parsed = std.json.parseFromTokenSource(ag.CoreRegistry, arena, &scanner, .{}) catch |err| {
         std.debug.print("line,col: {},{}\n", .{ diagnostics.getLine(), diagnostics.getColumn() });
         return err;
     };
