@@ -2,7 +2,7 @@ const std = @import("std");
 const expect = std.testing.expect;
 const eql = std.mem.eql;
 
-const token = @import("token.zig");
+const language = @import("language.zig");
 
 fn is_letter(ch: u8) bool {
     if (('A' <= ch and ch <= 'Z') or ('a' <= ch and ch <= 'z')) return true;
@@ -75,141 +75,168 @@ pub fn Lexer() type {
             }
         }
 
-        pub fn next_token(self: *Self) token.Token {
-            var next: token.Token = undefined;
+        pub fn next_token(self: *Self) language.Token {
+            var next: language.Token = undefined;
             self.skip_whitespace();
             switch (self.ch) {
                 '=' => {
-                    next = token.Token{
-                        .type = token.TokenType.ASSIGN,
-                        .literal = token.TokenType.ASSIGN.str(),
+                    next = language.Token{
+                        .type = language.Type.equality,
+                        .literal = language.str(language.Type.equality),
                     };
                 },
                 '+' => {
-                    next = token.Token{
-                        .type = token.TokenType.PLUS,
-                        .literal = token.TokenType.PLUS.str(),
+                    next = language.Token{
+                        .type = language.Type.addition,
+                        .literal = language.str(language.Type.addition),
                     };
                 },
                 ',' => {
-                    next = token.Token{
-                        .type = token.TokenType.COMMA,
-                        .literal = token.TokenType.COMMA.str(),
+                    next = language.Token{
+                        .type = language.Type.comma,
+                        .literal = language.str(language.Type.comma),
                     };
                 },
                 ';' => {
-                    next = token.Token{
-                        .type = token.TokenType.SEMICOLON,
-                        .literal = token.TokenType.SEMICOLON.str(),
+                    next = language.Token{
+                        .type = language.Type.semicolon,
+                        .literal = language.str(language.Type.semicolon),
                     };
                 },
                 '(' => {
-                    next = token.Token{
-                        .type = token.TokenType.LPAREN,
-                        .literal = token.TokenType.LPAREN.str(),
+                    next = language.Token{
+                        .type = language.Type.open_parenthesis,
+                        .literal = language.str(language.Type.open_parenthesis),
                     };
                 },
                 ')' => {
-                    next = token.Token{
-                        .type = token.TokenType.RPAREN,
-                        .literal = token.TokenType.RPAREN.str(),
+                    next = language.Token{
+                        .type = language.Type.close_parenthesis,
+                        .literal = language.str(language.Type.close_parenthesis),
                     };
                 },
                 '{' => {
-                    next = token.Token{
-                        .type = token.TokenType.LBRACE,
-                        .literal = token.TokenType.LBRACE.str(),
+                    next = language.Token{
+                        .type = language.Type.open_curly_brace,
+                        .literal = language.str(language.Type.open_curly_brace),
                     };
                 },
                 '}' => {
-                    next = token.Token{
-                        .type = token.TokenType.RBRACE,
-                        .literal = token.TokenType.RBRACE.str(),
+                    next = language.Token{
+                        .type = language.Type.close_curly_brace,
+                        .literal = language.str(language.Type.close_curly_brace),
                     };
                 },
                 '-' => {
-                    next = token.Token{
-                        .type = token.TokenType.MINUS,
-                        .literal = token.TokenType.MINUS.str(),
+                    next = language.Token{
+                        .type = language.Type.subtraction,
+                        .literal = language.str(language.Type.subtraction),
                     };
                 },
                 '!' => {
-                    next = token.Token{
-                        .type = token.TokenType.BANG,
-                        .literal = token.TokenType.BANG.str(),
+                    next = language.Token{
+                        .type = language.Type.logical_negation,
+                        .literal = language.str(language.Type.logical_negation),
                     };
                 },
                 '*' => {
-                    next = token.Token{
-                        .type = token.TokenType.ASTERISK,
-                        .literal = token.TokenType.ASTERISK.str(),
+                    next = language.Token{
+                        .type = language.Type.multiplication,
+                        .literal = language.str(language.Type.multiplication),
                     };
                 },
                 '/' => {
                     self.read_char();
                     if (self.ch == '/') {
                         self.read_char();
-                        next = token.Token{
-                            .type = token.TokenType.COMMENT,
+                        next = language.Token{
+                            .type = language.Type.comment,
                             .literal = self.read_comment(),
                         };
                     } else {
-                        next = token.Token{
-                            .type = token.TokenType.SLASH,
-                            .literal = token.TokenType.SLASH.str(),
+                        next = language.Token{
+                            .type = language.Type.division,
+                            .literal = language.str(language.Type.division),
                         };
                     }
                 },
                 '<' => {
-                    next = token.Token{
-                        .type = token.TokenType.LT,
-                        .literal = token.TokenType.LT.str(),
+                    next = language.Token{
+                        .type = language.Type.less_than,
+                        .literal = language.str(language.Type.less_than),
                     };
                 },
                 '>' => {
-                    next = token.Token{
-                        .type = token.TokenType.GT,
-                        .literal = token.TokenType.GT.str(),
+                    next = language.Token{
+                        .type = language.Type.greater_than,
+                        .literal = language.str(language.Type.greater_than),
                     };
                 },
                 '[' => {
-                    next = token.Token{
-                        .type = token.TokenType.LBRACK,
-                        .literal = token.TokenType.LBRACK.str(),
+                    next = language.Token{
+                        .type = language.Type.open_square_bracket,
+                        .literal = language.str(language.Type.open_square_bracket),
                     };
                 },
                 ']' => {
-                    next = token.Token{
-                        .type = token.TokenType.RBRACK,
-                        .literal = token.TokenType.RBRACK.str(),
+                    next = language.Token{
+                        .type = language.Type.close_square_bracket,
+                        .literal = language.str(language.Type.close_square_bracket),
                     };
                 },
+                '&' => {
+                    next = language.Token{
+                        .type = language.Type.bitwise_and,
+                        .literal = language.str(language.Type.bitwise_and),
+                    };
+                },
+                '|' => {
+                    next = language.Token{
+                        .type = language.Type.bitwise_or,
+                        .literal = language.str(language.Type.bitwise_or),
+                    };
+                },
+                '^' => {
+                    next = language.Token{
+                        .type = language.Type.bitwise_xor,
+                        .literal = language.str(language.Type.bitwise_xor),
+                    };
+                },
+                '~' => {
+                    next = language.Token{
+                        .type = language.Type.bitwise_not,
+                        .literal = language.str(language.Type.bitwise_not),
+                    };
+                },
+                // '<<' => { next = language.Token{ .type = language.Type.left_shift, .literal = language.str(language.Type.left_shift), }; },
+                // '>>' => { next = language.Token{ .type = language.Type.right_shift, .literal = language.str(language.Type.right_shift), }; },
+                '%' => {
+                    next = language.Token{
+                        .type = language.Type.modulo,
+                        .literal = language.str(language.Type.modulo),
+                    };
+                },
+                '.' => {
+                    next = language.Token{
+                        .type = language.Type.period,
+                        .literal = language.str(language.Type.period),
+                    };
+                },
+                // '**' => { next = language.Token{ .type = language.Type.exponentiation, .literal = language.str(language.Type.exponentiation), }; },
                 else => {
                     if (is_letter(self.ch)) {
                         next.literal = self.read_identifier();
-                        next.type = token.TokenType.lookup_ident(next.literal);
+                        next.type = language.lookup_identifier(next.literal);
                         return next;
                     } else if (is_digit(self.ch)) {
                         next.literal = self.read_number();
-                        next.type = token.TokenType.INT;
+                        next.type = language.Type._uint;
                         return next;
                     } else {
-                        if (is_carret(self.ch)) {
-                            next = token.Token{
-                                .type = token.TokenType.CARRET,
-                                .literal = "^",
-                            };
-                        } else if (is_period(self.ch)) {
-                            next = token.Token{
-                                .type = token.TokenType.PERIOD,
-                                .literal = ".",
-                            };
-                        } else {
-                            next = token.Token{
-                                .type = token.TokenType.EOF,
-                                .literal = "",
-                            };
-                        }
+                        next = language.Token{
+                            .type = language.Type.eof,
+                            .literal = "",
+                        };
                     }
                 },
             }
@@ -227,7 +254,6 @@ test "Lexer" {
         \\pragma experimental ABIEncoderV2;
         \\struct S { uint a; uint[] b; T[] c; }
     ;
-
     var lexer = Lexer(){
         .input = input,
         .position = 0,
@@ -235,393 +261,129 @@ test "Lexer" {
         .ch = input[0],
     };
 
-    const tests = [_]token.Token{
+    const tests = [_]language.Token{
         .{
-            .type = token.TokenType.COMMENT,
+            .type = language.Type.comment,
             .literal = " SPDX-License-Identifier: GPL-3.0",
         },
         .{
-            .type = token.TokenType.PRAGMA,
+            .type = language.Type._pragma,
             .literal = "pragma",
         },
         .{
-            .type = token.TokenType.SOLIDITY,
+            .type = language.Type._solidity,
             .literal = "solidity",
         },
         .{
-            .type = token.TokenType.CARRET,
+            .type = language.Type.bitwise_xor,
             .literal = "^",
         },
         .{
-            .type = token.TokenType.INT,
+            .type = language.Type._uint,
             .literal = "0",
         },
         .{
-            .type = token.TokenType.PERIOD,
+            .type = language.Type.period,
             .literal = ".",
         },
         .{
-            .type = token.TokenType.INT,
+            .type = language.Type._uint,
             .literal = "8",
         },
         .{
-            .type = token.TokenType.PERIOD,
+            .type = language.Type.period,
             .literal = ".",
         },
         .{
-            .type = token.TokenType.INT,
+            .type = language.Type._uint,
             .literal = "0",
         },
         .{
-            .type = token.TokenType.SEMICOLON,
+            .type = language.Type.semicolon,
             .literal = ";",
         },
         .{
-            .type = token.TokenType.PRAGMA,
+            .type = language.Type._pragma,
             .literal = "pragma",
         },
         .{
-            .type = token.TokenType.EXPERIMENTAL,
+            .type = language.Type._experimental,
             .literal = "experimental",
         },
         .{
-            .type = token.TokenType.IDENT,
+            .type = language.Type.identifier,
             .literal = "ABIEncoderV2",
         },
         .{
-            .type = token.TokenType.SEMICOLON,
+            .type = language.Type.semicolon,
             .literal = ";",
         },
         .{
-            .type = token.TokenType.STRUCT,
+            .type = language.Type._struct,
             .literal = "struct",
         },
         .{
-            .type = token.TokenType.IDENT,
+            .type = language.Type.identifier,
             .literal = "S",
         },
         .{
-            .type = token.TokenType.LBRACE,
+            .type = language.Type.open_curly_brace,
             .literal = "{",
         },
         .{
-            .type = token.TokenType.UINT,
+            .type = language.Type._uint,
             .literal = "uint",
         },
         .{
-            .type = token.TokenType.IDENT,
+            .type = language.Type.identifier,
             .literal = "a",
         },
         .{
-            .type = token.TokenType.SEMICOLON,
+            .type = language.Type.semicolon,
             .literal = ";",
         },
         .{
-            .type = token.TokenType.UINT,
+            .type = language.Type._uint,
             .literal = "uint",
         },
         .{
-            .type = token.TokenType.LBRACK,
+            .type = language.Type.open_square_bracket,
             .literal = "[",
         },
         .{
-            .type = token.TokenType.RBRACK,
+            .type = language.Type.close_square_bracket,
             .literal = "]",
         },
         .{
-            .type = token.TokenType.IDENT,
+            .type = language.Type.identifier,
             .literal = "b",
         },
         .{
-            .type = token.TokenType.SEMICOLON,
+            .type = language.Type.semicolon,
             .literal = ";",
         },
         .{
-            .type = token.TokenType.IDENT,
+            .type = language.Type.identifier,
             .literal = "T",
         },
         .{
-            .type = token.TokenType.LBRACK,
+            .type = language.Type.open_square_bracket,
             .literal = "[",
         },
         .{
-            .type = token.TokenType.RBRACK,
+            .type = language.Type.close_square_bracket,
             .literal = "]",
         },
         .{
-            .type = token.TokenType.IDENT,
+            .type = language.Type.identifier,
             .literal = "c",
         },
         .{
-            .type = token.TokenType.SEMICOLON,
+            .type = language.Type.semicolon,
             .literal = ";",
         },
         .{
-            .type = token.TokenType.RBRACE,
-            .literal = "}",
-        },
-    };
-
-    for (tests) |t| {
-        var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
-        try expect(eql(u8, t.literal, next.literal));
-        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
-    }
-}
-
-test "Lexer - =+(){},;" {
-    std.debug.print("\n", .{});
-    const input: []const u8 = "=+(){},;";
-
-    var lexer = Lexer(){
-        .input = input,
-        .position = 0,
-        .read_position = 1,
-        .ch = input[0],
-    };
-
-    const tests = [_]token.Token{ .{
-        .type = token.TokenType.ASSIGN,
-        .literal = "=",
-    }, .{
-        .type = token.TokenType.PLUS,
-        .literal = "+",
-    }, .{
-        .type = token.TokenType.LPAREN,
-        .literal = "(",
-    }, .{
-        .type = token.TokenType.RPAREN,
-        .literal = ")",
-    }, .{
-        .type = token.TokenType.LBRACE,
-        .literal = "{",
-    }, .{
-        .type = token.TokenType.RBRACE,
-        .literal = "}",
-    }, .{
-        .type = token.TokenType.COMMA,
-        .literal = ",",
-    }, .{
-        .type = token.TokenType.SEMICOLON,
-        .literal = ";",
-    }, .{
-        .type = token.TokenType.EOF,
-        .literal = "",
-    } };
-
-    for (tests) |t| {
-        var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
-        try expect(eql(u8, t.literal, next.literal));
-        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
-    }
-}
-
-test "Lexer - pragma solidity ^0.8.0;" {
-    std.debug.print("\n", .{});
-    const input: []const u8 =
-        \\pragma solidity ^0.8.0;
-    ;
-
-    var lexer = Lexer(){
-        .input = input,
-        .position = 0,
-        .read_position = 1,
-        .ch = input[0],
-    };
-
-    const tests = [_]token.Token{
-        .{
-            .type = token.TokenType.PRAGMA,
-            .literal = "pragma",
-        },
-        .{
-            .type = token.TokenType.SOLIDITY,
-            .literal = "solidity",
-        },
-        .{
-            .type = token.TokenType.CARRET,
-            .literal = "^",
-        },
-        .{
-            .type = token.TokenType.INT,
-            .literal = "0",
-        },
-        .{
-            .type = token.TokenType.PERIOD,
-            .literal = ".",
-        },
-        .{
-            .type = token.TokenType.INT,
-            .literal = "8",
-        },
-        .{
-            .type = token.TokenType.PERIOD,
-            .literal = ".",
-        },
-        .{
-            .type = token.TokenType.INT,
-            .literal = "0",
-        },
-        .{
-            .type = token.TokenType.SEMICOLON,
-            .literal = ";",
-        },
-    };
-
-    for (tests) |t| {
-        var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
-        try expect(eql(u8, t.literal, next.literal));
-        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
-    }
-}
-
-test "Lexer - // SPDX-License-Identifier: GPL-3.0" {
-    std.debug.print("\n", .{});
-    const input: []const u8 =
-        \\// SPDX-License-Identifier: GPL-3.0
-    ;
-
-    var lexer = Lexer(){
-        .input = input,
-        .position = 0,
-        .read_position = 1,
-        .ch = input[0],
-    };
-
-    const tests = [_]token.Token{
-        .{
-            .type = token.TokenType.COMMENT,
-            .literal = " SPDX-License-Identifier: GPL-3.0",
-        },
-    };
-
-    for (tests) |t| {
-        var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
-        try expect(eql(u8, t.literal, next.literal));
-        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
-    }
-}
-
-test "Lexer - contract Example {" {
-    std.debug.print("\n", .{});
-    const input: []const u8 =
-        \\contract Example {
-    ;
-
-    var lexer = Lexer(){
-        .input = input,
-        .position = 0,
-        .read_position = 1,
-        .ch = input[0],
-    };
-
-    const tests = [_]token.Token{
-        .{
-            .type = token.TokenType.CONTRACT,
-            .literal = "contract",
-        },
-        .{
-            .type = token.TokenType.IDENT,
-            .literal = "Example",
-        },
-        .{
-            .type = token.TokenType.LBRACE,
-            .literal = "{",
-        },
-    };
-
-    for (tests) |t| {
-        var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
-        try expect(eql(u8, t.literal, next.literal));
-        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
-    }
-}
-
-test "Lexer - struct S { uint a; uint[] b; T[] c; }" {
-    std.debug.print("\n", .{});
-    const input: []const u8 =
-        \\struct S { uint a; uint[] b; T[] c; }
-    ;
-
-    var lexer = Lexer(){
-        .input = input,
-        .position = 0,
-        .read_position = 1,
-        .ch = input[0],
-    };
-
-    const tests = [_]token.Token{
-        .{
-            .type = token.TokenType.STRUCT,
-            .literal = "struct",
-        },
-        .{
-            .type = token.TokenType.IDENT,
-            .literal = "S",
-        },
-        .{
-            .type = token.TokenType.LBRACE,
-            .literal = "{",
-        },
-        .{
-            .type = token.TokenType.UINT,
-            .literal = "uint",
-        },
-        .{
-            .type = token.TokenType.IDENT,
-            .literal = "a",
-        },
-        .{
-            .type = token.TokenType.SEMICOLON,
-            .literal = ";",
-        },
-        .{
-            .type = token.TokenType.UINT,
-            .literal = "uint",
-        },
-        .{
-            .type = token.TokenType.LBRACK,
-            .literal = "[",
-        },
-        .{
-            .type = token.TokenType.RBRACK,
-            .literal = "]",
-        },
-        .{
-            .type = token.TokenType.IDENT,
-            .literal = "b",
-        },
-        .{
-            .type = token.TokenType.SEMICOLON,
-            .literal = ";",
-        },
-        .{
-            .type = token.TokenType.IDENT,
-            .literal = "T",
-        },
-        .{
-            .type = token.TokenType.LBRACK,
-            .literal = "[",
-        },
-        .{
-            .type = token.TokenType.RBRACK,
-            .literal = "]",
-        },
-        .{
-            .type = token.TokenType.IDENT,
-            .literal = "c",
-        },
-        .{
-            .type = token.TokenType.SEMICOLON,
-            .literal = ";",
-        },
-        .{
-            .type = token.TokenType.RBRACE,
+            .type = language.Type.close_curly_brace,
             .literal = "}",
         },
     };
