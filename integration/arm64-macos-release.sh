@@ -12,14 +12,15 @@ if [ "$ARCH" != "arm64" ]; then
   exit 1
 fi
 
-# Download the pre-built Zig program binary for arm64 from GitHub
+# URL of the pre-built Zig program binary
 BINARY_URL="https://github.com/stitch-labs/stitch/releases/download/latest/stitch"
+
+# Download the Zig program binary for arm64 from GitHub
 curl -fsSL "$BINARY_URL" -o "$INSTALL_DIR/stitch"
 
-# Check the HTTP status code
-HTTP_STATUS=$?
-if [ $HTTP_STATUS -ne 0 ]; then
-  echo "Error: Failed to download the binary. HTTP status code: $HTTP_STATUS"
+# Check if the download was successful
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to download the binary."
   exit 1
 fi
 
