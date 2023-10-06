@@ -256,6 +256,9 @@ test "Lexer" {
         \\contract Example {
         \\  struct S { uint a; uint[] b; T[] c; }
         \\  struct T { uint x; uint y; }
+        \\  function f(S memory, T memory, uint) public pure {}
+        \\  function g() public pure returns (S memory, T memory, uint) {}
+        \\}
     ;
     var lexer = Lexer(){
         .input = input,
@@ -440,6 +443,82 @@ test "Lexer" {
         .{
             .type = language.Type.close_curly_brace,
             .literal = "}",
+        },
+        .{
+            .type = language.Type._function,
+            .literal = "function",
+        },
+        .{
+            .type = language.Type.identifier,
+            .literal = "f",
+        },
+        .{
+            .type = language.Type.open_parenthesis,
+            .literal = "(",
+        },
+        .{
+            .type = language.Type.identifier,
+            .literal = "S",
+        },
+        .{
+            .type = language.Type._memory,
+            .literal = "memory",
+        },
+        .{
+            .type = language.Type.comma,
+            .literal = ",",
+        },
+        .{
+            .type = language.Type.identifier,
+            .literal = "T",
+        },
+        .{
+            .type = language.Type._memory,
+            .literal = "memory",
+        },
+        .{
+            .type = language.Type.comma,
+            .literal = ",",
+        },
+        .{
+            .type = language.Type._uint,
+            .literal = "uint",
+        },
+        .{
+            .type = language.Type.close_parenthesis,
+            .literal = ")",
+        },
+        .{
+            .type = language.Type._public,
+            .literal = "public",
+        },
+        .{
+            .type = language.Type._pure,
+            .literal = "pure",
+        },
+        .{
+            .type = language.Type.open_curly_brace,
+            .literal = "{",
+        },
+        .{
+            .type = language.Type.close_curly_brace,
+            .literal = "}",
+        },
+        .{
+            .type = language.Type._function,
+            .literal = "function",
+        },
+        .{
+            .type = language.Type.identifier,
+            .literal = "g",
+        },
+        .{
+            .type = language.Type.open_parenthesis,
+            .literal = "(",
+        },
+        .{
+            .type = language.Type.close_parenthesis,
+            .literal = ")",
         },
     };
 
