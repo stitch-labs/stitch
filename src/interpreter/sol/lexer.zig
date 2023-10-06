@@ -252,7 +252,10 @@ test "Lexer" {
         \\// SPDX-License-Identifier: GPL-3.0
         \\pragma solidity ^0.8.0;
         \\pragma experimental ABIEncoderV2;
-        \\struct S { uint a; uint[] b; T[] c; }
+        \\
+        \\contract Example {
+        \\  struct S { uint a; uint[] b; T[] c; }
+        \\  struct T { uint x; uint y; }
     ;
     var lexer = Lexer(){
         .input = input,
@@ -319,6 +322,18 @@ test "Lexer" {
             .literal = ";",
         },
         .{
+            .type = language.Type._contract,
+            .literal = "contract",
+        },
+        .{
+            .type = language.Type.identifier,
+            .literal = "Example",
+        },
+        .{
+            .type = language.Type.open_curly_brace,
+            .literal = "{",
+        },
+        .{
             .type = language.Type._struct,
             .literal = "struct",
         },
@@ -377,6 +392,46 @@ test "Lexer" {
         .{
             .type = language.Type.identifier,
             .literal = "c",
+        },
+        .{
+            .type = language.Type.semicolon,
+            .literal = ";",
+        },
+        .{
+            .type = language.Type.close_curly_brace,
+            .literal = "}",
+        },
+        .{
+            .type = language.Type._struct,
+            .literal = "struct",
+        },
+        .{
+            .type = language.Type.identifier,
+            .literal = "T",
+        },
+        .{
+            .type = language.Type.open_curly_brace,
+            .literal = "{",
+        },
+        .{
+            .type = language.Type._uint,
+            .literal = "uint",
+        },
+        .{
+            .type = language.Type.identifier,
+            .literal = "x",
+        },
+        .{
+            .type = language.Type.semicolon,
+            .literal = ";",
+        },
+        .{
+            .type = language.Type._uint,
+            .literal = "uint",
+        },
+        .{
+            .type = language.Type.identifier,
+            .literal = "y",
         },
         .{
             .type = language.Type.semicolon,
