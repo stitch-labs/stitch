@@ -13,7 +13,7 @@ if [ "$ARCH" != "arm64" ]; then
 fi
 
 # Download the pre-built Zig program binary for arm64 from GitHub
-BINARY_URL="https://github.com/stitch-labs/stitch/releases/latest/download/stitch-arm64"
+BINARY_URL="https://github.com/stitch-labs/stitch/releases/download/latest/stitch"
 curl -fsSL "$BINARY_URL" -o "$INSTALL_DIR/stitch"
 
 # Check the HTTP status code
