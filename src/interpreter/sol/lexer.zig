@@ -47,6 +47,14 @@ pub fn Lexer() type {
             self.read_position += 1;
         }
 
+        fn peek_char(self: *Self) u8 {
+            if (self.read_position > self.input.len - 1) {
+                return 0;
+            } else {
+                return self.input[self.read_position];
+            }
+        }
+
         fn read_identifier(self: *Self) []const u8 {
             var position = self.position;
             while (is_letter(self.ch) or is_digit(self.ch)) {
@@ -80,16 +88,32 @@ pub fn Lexer() type {
             self.skip_whitespace();
             switch (self.ch) {
                 '=' => {
-                    next = language.Token{
-                        .type = language.Type.equality,
-                        .literal = language.str(language.Type.equality),
-                    };
+                    if (self.peek_char() == '=') {
+                        self.read_char();
+                        next = language.Token{
+                            .type = language.Type.equality,
+                            .literal = language.str(language.Type.equality),
+                        };
+                    } else {
+                        next = language.Token{
+                            .type = language.Type.equal,
+                            .literal = language.str(language.Type.equal),
+                        };
+                    }
                 },
                 '+' => {
-                    next = language.Token{
-                        .type = language.Type.addition,
-                        .literal = language.str(language.Type.addition),
-                    };
+                    if (self.peek_char() == '=') {
+                        self.read_char();
+                        next = language.Token{
+                            .type = language.Type.addition_assignment,
+                            .literal = language.str(language.Type.addition_assignment),
+                        };
+                    } else {
+                        next = language.Token{
+                            .type = language.Type.addition,
+                            .literal = language.str(language.Type.addition),
+                        };
+                    }
                 },
                 ',' => {
                     next = language.Token{
@@ -134,10 +158,18 @@ pub fn Lexer() type {
                     };
                 },
                 '!' => {
-                    next = language.Token{
-                        .type = language.Type.logical_negation,
-                        .literal = language.str(language.Type.logical_negation),
-                    };
+                    if (self.peek_char() == '=') {
+                        self.read_char();
+                        next = language.Token{
+                            .type = language.Type.inequality,
+                            .literal = language.str(language.Type.inequality),
+                        };
+                    } else {
+                        next = language.Token{
+                            .type = language.Type.logical_negation,
+                            .literal = language.str(language.Type.logical_negation),
+                        };
+                    }
                 },
                 '*' => {
                     next = language.Token{
@@ -146,8 +178,8 @@ pub fn Lexer() type {
                     };
                 },
                 '/' => {
-                    self.read_char();
-                    if (self.ch == '/') {
+                    if (self.peek_char() == '/') {
+                        self.read_char();
                         self.read_char();
                         next = language.Token{
                             .type = language.Type.comment,
@@ -161,16 +193,44 @@ pub fn Lexer() type {
                     }
                 },
                 '<' => {
-                    next = language.Token{
-                        .type = language.Type.less_than,
-                        .literal = language.str(language.Type.less_than),
-                    };
+                    if (self.peek_char() == '=') {
+                        self.read_char();
+                        next = language.Token{
+                            .type = language.Type.less_than_or_equal,
+                            .literal = language.str(language.Type.less_than_or_equal),
+                        };
+                    } else if (self.peek_char() == '<') {
+                        self.read_char();
+                        next = language.Token{
+                            .type = language.Type.left_shift,
+                            .literal = language.str(language.Type.left_shift),
+                        };
+                    } else {
+                        next = language.Token{
+                            .type = language.Type.less_than,
+                            .literal = language.str(language.Type.less_than),
+                        };
+                    }
                 },
                 '>' => {
-                    next = language.Token{
-                        .type = language.Type.greater_than,
-                        .literal = language.str(language.Type.greater_than),
-                    };
+                    if (self.peek_char() == '=') {
+                        self.read_char();
+                        next = language.Token{
+                            .type = language.Type.greater_than_or_equal,
+                            .literal = language.str(language.Type.greater_than_or_equal),
+                        };
+                    } else if (self.peek_char() == '>') {
+                        self.read_char();
+                        next = language.Token{
+                            .type = language.Type.right_shift,
+                            .literal = language.str(language.Type.right_shift),
+                        };
+                    } else {
+                        next = language.Token{
+                            .type = language.Type.greater_than,
+                            .literal = language.str(language.Type.greater_than),
+                        };
+                    }
                 },
                 '[' => {
                     next = language.Token{
@@ -208,8 +268,6 @@ pub fn Lexer() type {
                         .literal = language.str(language.Type.bitwise_not),
                     };
                 },
-                // '<<' => { next = language.Token{ .type = language.Type.left_shift, .literal = language.str(language.Type.left_shift), }; },
-                // '>>' => { next = language.Token{ .type = language.Type.right_shift, .literal = language.str(language.Type.right_shift), }; },
                 '%' => {
                     next = language.Token{
                         .type = language.Type.modulo,
@@ -222,7 +280,6 @@ pub fn Lexer() type {
                         .literal = language.str(language.Type.period),
                     };
                 },
-                // '**' => { next = language.Token{ .type = language.Type.exponentiation, .literal = language.str(language.Type.exponentiation), }; },
                 else => {
                     if (is_letter(self.ch)) {
                         next.literal = self.read_identifier();
@@ -246,7 +303,145 @@ pub fn Lexer() type {
     };
 }
 
-test "Lexer" {
+test "Lexer Single Operators" {
+    std.debug.print("\n", .{});
+
+    const input: []const u8 = "=+()-{},;!|&^<>";
+
+    var lexer = Lexer(){
+        .input = input,
+        .position = 0,
+        .read_position = 1,
+        .ch = input[0],
+    };
+
+    const tests = [_]language.Token{
+        .{
+            .type = language.Type.equal,
+            .literal = "=",
+        },
+        .{
+            .type = language.Type.addition,
+            .literal = "+",
+        },
+        .{
+            .type = language.Type.open_parenthesis,
+            .literal = "(",
+        },
+        .{
+            .type = language.Type.close_parenthesis,
+            .literal = ")",
+        },
+        .{
+            .type = language.Type.subtraction,
+            .literal = "-",
+        },
+        .{
+            .type = language.Type.open_curly_brace,
+            .literal = "{",
+        },
+        .{
+            .type = language.Type.close_curly_brace,
+            .literal = "}",
+        },
+        .{
+            .type = language.Type.comma,
+            .literal = ",",
+        },
+        .{
+            .type = language.Type.semicolon,
+            .literal = ";",
+        },
+        .{
+            .type = language.Type.logical_negation,
+            .literal = "!",
+        },
+        .{
+            .type = language.Type.bitwise_or,
+            .literal = "|",
+        },
+        .{
+            .type = language.Type.bitwise_and,
+            .literal = "&",
+        },
+        .{
+            .type = language.Type.bitwise_xor,
+            .literal = "^",
+        },
+        .{
+            .type = language.Type.less_than,
+            .literal = "<",
+        },
+        .{
+            .type = language.Type.greater_than,
+            .literal = ">",
+        },
+    };
+
+    for (tests) |t| {
+        var next = lexer.next_token();
+
+        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+
+        try expect(eql(u8, t.literal, next.literal));
+        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
+    }
+}
+
+test "Lexer Double Operators" {
+    std.debug.print("\n", .{});
+
+    const input = "== != <= >= << >> +=";
+
+    var lexer = Lexer(){
+        .input = input,
+        .position = 0,
+        .read_position = 1,
+        .ch = input[0],
+    };
+
+    const tests = [_]language.Token{
+        .{
+            .type = language.Type.equality,
+            .literal = "==",
+        },
+        .{
+            .type = language.Type.inequality,
+            .literal = "!=",
+        },
+        .{
+            .type = language.Type.less_than_or_equal,
+            .literal = "<=",
+        },
+        .{
+            .type = language.Type.greater_than_or_equal,
+            .literal = ">=",
+        },
+        .{
+            .type = language.Type.left_shift,
+            .literal = "<<",
+        },
+        .{
+            .type = language.Type.right_shift,
+            .literal = ">>",
+        },
+        .{
+            .type = language.Type.addition_assignment,
+            .literal = "+=",
+        },
+    };
+
+    for (tests) |t| {
+        var next = lexer.next_token();
+
+        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+
+        try expect(eql(u8, t.literal, next.literal));
+        try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
+    }
+}
+
+test "Lexer Full Solidity Code Example" {
     std.debug.print("\n", .{});
     const input: []const u8 =
         \\// SPDX-License-Identifier: GPL-3.0

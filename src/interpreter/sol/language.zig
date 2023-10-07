@@ -2,6 +2,11 @@ const std = @import("std");
 const expect = std.testing.expect;
 const eql = std.mem.eql;
 
+pub const Token = struct {
+    type: Type,
+    literal: []const u8,
+};
+
 pub const Type = enum {
     illegal,
     eof,
@@ -11,6 +16,8 @@ pub const Type = enum {
     comment,
 
     // Operators
+    equal,
+    addition_assignment,
     logical_negation,
     logical_conjunction,
     logical_disjunction,
@@ -122,7 +129,7 @@ pub const Type = enum {
     _experimental,
 };
 
-pub const TypeTable = [@typeInfo(Type).Enum.fields.len][:0]const u8{ "illegal", "eof", "identifier", "comment", "!", "&&", "||", "==", "!=", "<=", "<", ">=", ">", "&", "|", "^", "~", "<<", ">>", "+", "-", "*", "/", "%", "**", ",", ";", "(", ")", "{", "}", "[", "]", ".", "pragma", "solidity", "contract", "address", "payable", "function", "internal", "external", "abstract", "after", "assembly", "auto", "before", "bool", "break", "bytes", "case", "catch", "constant", "constructor", "continue", "default", "delete", "do", "else", "emit", "enum", "error", "event", "fallback", "false", "fixed", "for", "hex", "if", "import", "indexed", "in", "interface", "is", "library", "mapping", "memory", "modifier", "new", "null", "override", "private", "public", "pure", "receive", "revert", "returns", "return", "selfdestruct", "short", "signed", "string", "struct", "super", "switch", "this", "throw", "true", "try", "type", "int", "uint", "unchecked", "unsigned", "using", "view", "virtual", "while", "experimental" };
+pub const TypeTable = [@typeInfo(Type).Enum.fields.len][:0]const u8{ "illegal", "eof", "identifier", "comment", "=", "+=", "!", "&&", "||", "==", "!=", "<=", "<", ">=", ">", "&", "|", "^", "~", "<<", ">>", "+", "-", "*", "/", "%", "**", ",", ";", "(", ")", "{", "}", "[", "]", ".", "pragma", "solidity", "contract", "address", "payable", "function", "internal", "external", "abstract", "after", "assembly", "auto", "before", "bool", "break", "bytes", "case", "catch", "constant", "constructor", "continue", "default", "delete", "do", "else", "emit", "enum", "error", "event", "fallback", "false", "fixed", "for", "hex", "if", "import", "indexed", "in", "interface", "is", "library", "mapping", "memory", "modifier", "new", "null", "override", "private", "public", "pure", "receive", "revert", "returns", "return", "selfdestruct", "short", "signed", "string", "struct", "super", "switch", "this", "throw", "true", "try", "type", "int", "uint", "unchecked", "unsigned", "using", "view", "virtual", "while", "experimental" };
 
 pub fn str(self: Type) [:0]const u8 {
     return TypeTable[@intFromEnum(self)];
@@ -290,16 +297,4 @@ pub fn lookup_identifier(ident: []const u8) Type {
     } else {
         return Type.identifier;
     }
-}
-
-pub const Token = struct {
-    type: Type,
-    literal: []const u8,
-};
-
-test "basic usage" {
-    var ident = lookup_identifier("pragma");
-
-    // try expect(eql(comptime T: type, a: []const T, b: []const T));
-    try expect(@intFromEnum(Type._pragma) == @intFromEnum(ident));
 }
