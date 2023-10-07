@@ -46,7 +46,7 @@ pub fn start(output_file: std.fs.File, allocator: std.mem.Allocator, filepath: [
                 "[{d}] → {s}\n",
                 .{ line_index, line },
             );
-            // std.debug.print("[{d}] → {s}\n", .{ line_index, line });
+            std.debug.print("[{d}] → {s}\n", .{ line_index, line });
 
             while (true) {
                 var token = lex.next_token();
@@ -65,7 +65,7 @@ pub fn start(output_file: std.fs.File, allocator: std.mem.Allocator, filepath: [
                     "   |-[{d}] ← {s}::{s}\n",
                     .{ token_index, token_type, token_literal },
                 );
-                // std.debug.print("   |-[{d}] ← {s}::{s}\n", .{ token_index, token_type, token_literal });
+                std.debug.print("   |-[{d}] ← {s}::{s}\n", .{ token_index, token_type, token_literal });
 
                 token_index += 1;
             }
