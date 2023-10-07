@@ -60,7 +60,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const repl_test = b.addTest(.{
+        .root_source_file = .{ .path = "src/interpreter/sol/lexer.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    // const repl_test = b.addTest("src/utils/Utils.zig");
+    // repl_test.setBuildMode(mode);
+
     const run_unit_tests = b.addRunArtifact(unit_tests);
+    const run_repl_tests = b.addRunArtifact(repl_test);
+    _ = run_repl_tests;
 
     // Similar to creating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request

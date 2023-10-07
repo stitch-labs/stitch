@@ -1,8 +1,13 @@
 const std = @import("std");
+
 const expect = std.testing.expect;
 const eql = std.mem.eql;
 
 const language = @import("language.zig");
+const util = @import("../../../util.zig");
+
+const max_word_size = 15;
+const test_allocator = std.testing.allocator;
 
 fn is_letter(ch: u8) bool {
     if (('A' <= ch and ch <= 'Z') or ('a' <= ch and ch <= 'z')) return true;
@@ -717,9 +722,28 @@ test "Lexer Full Solidity Code Example" {
         },
     };
 
+    var token_count: usize = 0;
     for (tests) |t| {
         var next = lexer.next_token();
-        std.debug.print("(({s}, {s}), ({}, {}))\n", .{ t.literal, next.literal, @intFromEnum(t.type), @intFromEnum(next.type) });
+
+        const type_str = language.str(next.type);
+        const literal_str = next.literal;
+
+        const padding_count = util.max(0, max_word_size - type_str.len);
+        const _padding = try util.padding_runtime(test_allocator, padding_count);
+        defer test_allocator.free(_padding);
+
+        std.debug.print(
+            \\{d:>2}: Type:{s}{s}Literal: {s}
+            \\
+        , .{
+            token_count,
+            type_str,
+            _padding,
+            literal_str,
+        });
+        token_count += 1;
+
         try expect(eql(u8, t.literal, next.literal));
         try expect(@intFromEnum(t.type) == @intFromEnum(next.type));
     }

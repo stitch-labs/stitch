@@ -86,7 +86,7 @@ const debug_usage = normal_usage ++
     \\
     \\Debug Commands:
     \\
-    \\  dump-bindings                Dump a file containing the cached EVM bytecode bindings
+    \\  dump-sol-tokens                Dump a file containing the parsed & interpreted tokens from an Solidity specification .sol
     \\
 ;
 
@@ -153,6 +153,8 @@ pub fn mainArgs(gpa: Allocator, arena: Allocator, args: []const []const u8) !voi
         return commands.generate_abi_bytecode(gpa, arena, cmd_args);
     } else if (mem.eql(u8, cmd, "abi-spec")) {
         return commands.generate_abi_specification(gpa, arena, cmd_args);
+    } else if (mem.eql(u8, cmd, "dump-sol-tokens")) {
+        return commands.dump_solidity_tokens(gpa, arena, cmd_args);
     } else {
         print_usage(args[0]);
         global.fatal("unknown command: {s}", .{args[1]});
